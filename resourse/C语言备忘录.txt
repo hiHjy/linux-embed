@@ -1,0 +1,197 @@
+1,const
+	const char *p; 		//字符内容不可改，指针可改
+	char * const p; 	//字符内容可以改，指针不能改
+	const 在类型名前后效果一样：const char * 与 char const * 等价
+
+2,fprintf(stderr, "%s", argv[0])
+	fprintf(stderr, …) = 带格式地把错误提示写到标准错误。
+
+3,strcpy(原来的字符串,要复制的字符串);
+
+4,strcat(原来的字符串,在原来的字符串后面追加的字符串);
+	strcat不会清空原来的字符串
+
+5,perror(""):根据最近一次的错误的errno，输出错误信息+""
+
+6,fputc 
+
+	┌─────────────┐
+	│ 你的代码     │  调用 fputc()
+	└───────┬─────┘
+		▼
+	┌─────────────┐
+	│ 用户态缓冲区 │ ← stdio (fwrite/fputc) 管的内存
+	└───────┬─────┘
+		│  满了 / fflush / 关闭文件 时
+		▼
+	┌─────────────┐
+	│   内核页缓存 │ ← 1 次 write() 进入内核
+	└───────┬─────┘
+		│  落盘时机由内核后台线程决定
+		▼
+	┌─────────────┐
+	│  物理磁盘    │
+	└─────────────┘
+
+
+7,  void *memcpy(void *dest, const void *src, size_t n);
+    
+
+	从内存src复制到dest，desc和src不能有重叠的部分
+	若有重叠部分，用memmove函数
+		void *memmove(void *dest, const void *src, size_t n);
+	用途：
+			#1 拷贝结构体数组
+
+	    	#2 复制 socket 数据、二进制数据流
+
+			#3 写驱动、系统编程时传递数据缓冲区	
+
+
+	:)strcpy 专门为 “拷贝到遇 \0” 设计；
+
+	:)memcpy 是 “搬 n 字节，不管内容”；
+
+	:)要重叠就找 memmove。
+
+8，标准输出stdout
+	#1 标准输出 stdout 输出到终端是行缓冲的，putchar() 等函数不会立即输出到屏幕除非：
+		（1）缓冲区满
+		（2）遇到换行符 \n
+		（3）显式调用 fflush(stdout);
+		还有如下函数类似：printf()	fprintf()	
+	#2 标准输出 stdout 输出到文件/管道是全缓冲，只有当
+		（1）缓冲区满了
+		（2）显式调用 fflush(stdout);
+		（3）程序退出时，exit() 或 close() 会触发缓冲区刷新
+
+9，sprintf 
+		就是：像 printf 一样格式化内容，但不是打印到屏幕，而是写到字符串中。
+	  	char buffer[100];
+    	int age = 25;
+   		sprintf(buffer, "I am %d years old.", age);
+    	printf("buffer = %s\n", buffer);  // 输出：I am 25 years old.
+
+10，函数指针
+
+	函数指针的定义语法：
+		返回值类型 (*函数指针变量)(参数类型列表);
+
+	例：
+		void (*myfun)(int, int);
+			→ 定义一个函数指针变量 myfun，指向一个返回 void、参数为 int, int 的函数。
+
+	typedef 的用法：
+		typedef void (*myfun)(int, int);
+			→ 给函数指针类型 void (*)(int, int) 起别名为 myfun。
+			→ 此后可以这样定义函数指针变量：
+				myfun fun1;
+				myfun fun2;
+
+	假设有函数：
+		void test(int a, int b) { /*...*/ }
+
+	赋值与调用：
+		fun1 = test;
+		fun1(10, 20);           // 等价于 (*fun1)(10, 20);
+								// 注意：函数名本身就是函数指针，它会自动转换为函数地址
+
+11，程序内存布局概览
+					+-------------------+
+					|     .text         | ← 存指令（代码段）
+					+-------------------+
+					|     .data         | ← 已初始化的全局/静态变量
+					+-------------------+
+					|     .bss          | ← 未初始化的全局/静态变量
+					+-------------------+
+					|     heap          | ← 动态分配区（malloc）
+					+-------------------+
+					|     stack         | ← 函数局部变量、返回地址等
+					+-------------------+
+
+12，stderr
+
+	    stderr 是 C 标准库定义的三个标准流之一：
+			:)stdin：标准输入（通常来自键盘）
+			:)stdout：标准输出（通常显示到屏幕）
+			:)stderr：标准错误输出（也显示到屏幕）
+
+    	#在代码中，它被声明为 FILE* 类型的全局变量（定义在 <stdio.h> 头文件中）
+		#无缓冲或行缓冲	默认不缓冲或行缓冲（立即输出），确保错误信息第一时间显示
+
+		例：    
+				// 正常输出到 stdout（可能被重定向）
+    			printf("Program started...\n");
+    
+    			// 错误信息到 stderr（总是立即显示）
+    			fprintf(stderr, "ERROR: Critical failure detected!\n");
+    
+				
+				
+				运行效果：
+						# 重定向 stdout 时，stderr 仍显示在终端
+						$ ./program > output.txt
+						ERROR: Critical failure detected!
+
+						$ cat output.txt
+						Program started...
+					
+
+			(1)当重定向输出时（如 ./program > output.txt），错误信息仍会显示在屏幕上
+			(2)即使程序崩溃或缓冲区未刷新，错误信息也能立即显示
+			(3)错误信息不会被管道操作或输出重定向丢弃
+
+13, atoi,atol,atoll
+
+	int atoi(const char *nptr);
+    long atol(const char *nptr);
+    long long atoll(const char *nptr);
+
+	#字符串转为整数
+
+14，assert 断言
+
+	当你使用 assert(x < 0); 
+	这类断言失败时，它会终止程序并向标准错误（stderr）输出一条错误信息，
+	类似下面这样：
+		a.out: main.c:6: main: Assertion `x < 0' failed.
+		Aborted (core dumped)
+
+15，memset
+	@brief 把一块内存区域全部置为 0（清空），主要用于初始化结构体、数组等。
+
+	memset(buf, 0, sizeof(buf));  // 推荐
+
+16，static 和 extern
+
+	#static修饰的全局变量作用域仅限 当前源文件，不能被其他 .c 文件访问。
+	#普通全局变量： 默认具有外部链接属性，可以被其他文件 extern 引用。
+	#因为 static 限定了作用域在当前 .c 文件内部，
+		它是模块化编程中隐藏实现细节、避免命名冲突的好方法。
+	#extern 是 C/C++ 中的一个关键字，表示“声明一个变量或函数在别的源文件中定义”，
+		用于跨文件访问全局变量或函数。
+
+17，  basename
+
+	char *basename(char *path);
+
+	@brief	basename() 是一个 C 语言中用于获取路径中文件名部分的函数，
+			定义在头文件 <libgen.h> 中。其作用是：从一个路径字符串中提取最后的文件名部分
+			（即去掉目录路径）。
+
+18， dirname
+
+	char *dirname(char *path);
+
+		# dirname(path) 会返回路径中最后一个 / 之前的部分，即所在目录的路径。
+
+		# 如果路径中没有 /，则返回 "."，表示当前目录。
+
+		# 如果路径以多个 / 结尾，它会先剔除这些末尾的 / 再处理。
+
+		例子：
+			char path1[] = "/usr/local/bin/gcc";
+			char path2[] = "myfile.txt";
+
+			printf("dirname: %s\n", dirname(path1));  // 输出：/usr/local/bin
+			printf("dirname: %s\n", dirname(path2));  // 输出：.
