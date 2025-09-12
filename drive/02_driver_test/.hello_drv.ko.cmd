@@ -1,0 +1,1 @@
+cmd_/home/hjy/Documents/linux-embed/drive/02_driver_test/hello_drv.ko := arm-linux-gnueabihf-ld -EL -r  -T ./scripts/module-common.lds --build-id  -o /home/hjy/Documents/linux-embed/drive/02_driver_test/hello_drv.ko /home/hjy/Documents/linux-embed/drive/02_driver_test/hello_drv.o /home/hjy/Documents/linux-embed/drive/02_driver_test/hello_drv.mod.o

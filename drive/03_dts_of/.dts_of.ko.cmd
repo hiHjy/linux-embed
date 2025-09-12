@@ -1,0 +1,1 @@
+cmd_/home/hjy/Documents/linux-embed/drive/03_dts_of/dts_of.ko := arm-linux-gnueabihf-ld -EL -r  -T ./scripts/module-common.lds --build-id  -o /home/hjy/Documents/linux-embed/drive/03_dts_of/dts_of.ko /home/hjy/Documents/linux-embed/drive/03_dts_of/dts_of.o /home/hjy/Documents/linux-embed/drive/03_dts_of/dts_of.mod.o

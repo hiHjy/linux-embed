@@ -32,13 +32,13 @@ int main(int argc, char *argv[])
 	int fd, retvalue;
 	char *filename;
 	unsigned char databuf;
+	int key_value;
 	
-	
-	if(argc != 3){
+	if(argc != 2){
 		printf("Error Usage!\r\n");
 		return -1;
 	}
-	databuf = (strcmp(argv[2], "0") == 0 ?  '0' : '1'); 
+	
 	
 	filename = argv[1];
 
@@ -49,24 +49,15 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	
+	while (1) {
+		int ret = read(fd, &key_value, 4);
+		if (key_value == 0xf0) {
+			printf("keyValue = %d\n", key_value);
+		} 	
+	}
 
-	/* 向/dev/led文件写入数据 */
-	retvalue = write(fd, &databuf, 1);
-	if(retvalue < 0){
-		printf("LED Control Failed!\r\n");
-		close(fd);
-		return -1;
-	}
+	close(fd); /* 关闭文件 */
 	
-	printf("模拟此led正在使用...\n");       
-	sleep(25);
-	printf("使用完毕释放灯--\n");
-	retvalue = close(fd); /* 关闭文件 */
-	if(retvalue < 0){
-		printf("file %s close failed!\r\n", argv[1]);
-		return -1;
-	}
 		
 		
 

@@ -1,0 +1,1 @@
+cmd_/home/hjy/Documents/linux-embed/drive/09_key/gpio_key.ko := arm-linux-gnueabihf-ld -EL -r  -T ./scripts/module-common.lds --build-id  -o /home/hjy/Documents/linux-embed/drive/09_key/gpio_key.ko /home/hjy/Documents/linux-embed/drive/09_key/gpio_key.o /home/hjy/Documents/linux-embed/drive/09_key/gpio_key.mod.o

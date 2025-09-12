@@ -1,0 +1,1 @@
+cmd_/home/hjy/Documents/linux-embed/drive/04_led_dts/led_dts.ko := arm-linux-gnueabihf-ld -EL -r  -T ./scripts/module-common.lds --build-id  -o /home/hjy/Documents/linux-embed/drive/04_led_dts/led_dts.ko /home/hjy/Documents/linux-embed/drive/04_led_dts/led_dts.o /home/hjy/Documents/linux-embed/drive/04_led_dts/led_dts.mod.o

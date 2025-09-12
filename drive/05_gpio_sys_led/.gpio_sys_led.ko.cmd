@@ -1,0 +1,1 @@
+cmd_/home/hjy/Documents/linux-embed/drive/05_gpio_sys_led/gpio_sys_led.ko := arm-linux-gnueabihf-ld -EL -r  -T ./scripts/module-common.lds --build-id  -o /home/hjy/Documents/linux-embed/drive/05_gpio_sys_led/gpio_sys_led.ko /home/hjy/Documents/linux-embed/drive/05_gpio_sys_led/gpio_sys_led.o /home/hjy/Documents/linux-embed/drive/05_gpio_sys_led/gpio_sys_led.mod.o
