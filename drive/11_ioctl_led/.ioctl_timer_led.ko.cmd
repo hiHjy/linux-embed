@@ -1,0 +1,1 @@
+cmd_/home/hjy/Documents/linux-embed/drive/11_ioctl_led/ioctl_timer_led.ko := arm-linux-gnueabihf-ld -EL -r  -T ./scripts/module-common.lds --build-id  -o /home/hjy/Documents/linux-embed/drive/11_ioctl_led/ioctl_timer_led.ko /home/hjy/Documents/linux-embed/drive/11_ioctl_led/ioctl_timer_led.o /home/hjy/Documents/linux-embed/drive/11_ioctl_led/ioctl_timer_led.mod.o
