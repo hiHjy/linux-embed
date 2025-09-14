@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "cstdio": "c"
+        "cstdio": "c",
+        "fs.h": "c",
+        "timer.h": "c"
     }
 }

@@ -38,28 +38,10 @@ int main(int argc, char *argv[])
 	}
 
 	while (1) {
-		printf("请输入命令：1，打开定时器 2，关闭定时器， 3设置定时器周期\n");
-
-		scanf("%d", &cmd_num);
-
-		int arg;
-		switch (cmd_num) {
-			case 1:
-				printf("已选择1：打开定时器\n"); 
-				ioctl(fd, OPEN_CMD, &arg);
-			break;
-
-			case 2:
-				printf("已选择2：关闭定时器\n"); 
-				ioctl(fd, CLOSE_CMD, &arg);
-			break;
-
-			case 3:
-				printf("已选择3：设置定时器\n");
-			break;
-
-		}
-		
+		int ret = read(fd, &databuf, sizeof(databuf));
+		if (ret > 0) {
+			printf("key value = %#x\n", databuf);
+		} 
 		
 	}
 
