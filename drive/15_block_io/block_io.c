@@ -1,4 +1,3 @@
-
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/slab.h>
@@ -15,6 +14,8 @@
 #include <linux/timer.h>
 #include <linux/irq.h>
 #include <linux/interrupt.h>
+#include <linux/wait.h>
+
 #define IRQ_GPIO_KEY_CNT 1
 #define IRQ_GPIO_KEY_NAME "irq_gpio_key"
 #define KEY_NUM 1
@@ -45,6 +46,7 @@ struct irq_gpio_key {
 	struct tasklet_struct tasklet;
 	struct work_struct work;
 	
+	wait_queue_head_t r_wait;
 };
 struct irq_gpio_key irq_gpio_key;
 
@@ -68,17 +70,57 @@ static int irq_gpio_key_release(struct inode *inode, struct file *filp) {
 }
 ssize_t irq_gpio_key_read (struct file *filp, char __user *buf, size_t count, loff_t *offt)
 {
+	
 	struct irq_gpio_key *dev = filp->private_data;
+	
 	int ret = 0;
+#if 0 
+	/*实现阻塞io的第一种方式：可中断的等待：wait_event_interruptible() wake_up() 这一对函数*/
+
+	/*可被信号打断*/
+
+	wait_event_interruptible(dev->r_wait, atomic_read(&dev->isrelease));//等待按键被按下，isrelease为0
+#endif
+
+	/*实现阻塞io的第二种方式:等待队列*/
+	DECLARE_WAITQUEUE(wait, current); //声明一个等待队列项名字为wait，与当前进程绑定起来
+	
+	if (atomic_read(&dev->isrelease) == 0) {
+		add_wait_queue(&dev->r_wait, &wait);/*将队列项添加到等待队列头(入队)*/
+		__set_current_state(TASK_INTERRUPTIBLE); /*设置可以被信号打断*/
+		schedule(); /*进入休眠状态*/
+
+		/*检测被唤醒的原因*/
+		
+		if (signal_pending(current)) {
+			/*被信号唤醒*/
+			ret = -ERESTARTSYS;
+			goto data_error;
+		}
+		
+		__set_current_state(TASK_RUNNING); /*设置当前进程为运行状态*/
+		remove_wait_queue(&dev->r_wait, &wait);
+		
+	}
 	unsigned char keyvalue = atomic_read(&dev->key_value);
 	unsigned char is_release = atomic_read(&dev->isrelease);
+	
 
 	if (is_release) {
-			ret = copy_to_user(buf, &keyvalue, sizeof(keyvalue));
-			atomic_set(&dev->isrelease, 0);	
-			return 1;
-	} 
+			
+				copy_to_user(buf, &keyvalue, sizeof(keyvalue));
+				atomic_set(&dev->isrelease, 0);	
+				
+				return 1;
+					
+	}
+	
 	return 0;
+	
+data_error:
+	__set_current_state(TASK_RUNNING); /*设置当前进程为运行状态*/
+	remove_wait_queue(&dev->r_wait, &wait);
+	return ret;
 }
 
 static const struct file_operations irq_gpio_key_fops = {
@@ -94,15 +136,22 @@ void timer_func(unsigned long data)
 	struct irq_gpio_key *dev = (struct irq_gpio_key *)data;
 	
 	value = gpio_get_value(dev->irq_key[0].gpio);
+	
 	if (value == 0) {
-		atomic_set(&dev->key_value, KEY0VALUE);
+		
 		atomic_set(&dev->isrelease, 0);
 		
+		//如果按键被按下，那么唤醒阻塞在read函数中wait_event(dev->r_wait, !atomic_read(&dev->isrelease))
+		
+	
 	}  else {
+
+		
+		wake_up(&dev->r_wait);
+
 		atomic_set(&dev->isrelease, 1);
 		
 	}
-
 }
 /*中断处理函数*/
 static irqreturn_t handler_fun(int irq, void *arg) 
@@ -151,9 +200,7 @@ int irq_gpio_key_init(struct irq_gpio_key *dev)
 {
 	int ret =0;
 	
-	/*初始化定时器*/
-	init_timer(&irq_gpio_key.timer);
-	irq_gpio_key.timer.function = timer_func;
+	
 	
 	/*按键初始化*/
 	dev->nd = of_find_node_by_path("/key");
@@ -295,7 +342,11 @@ static int __init led_init(void)
 	irq_gpio_key.timer.function = timer_func;
 
 	atomic_set(&irq_gpio_key.isrelease, 0);
-	atomic_set(&irq_gpio_key.key_value, INVAKEY);
+	atomic_set(&irq_gpio_key.key_value, KEY0VALUE);
+
+	/*初始化等待队列头*/
+
+	init_waitqueue_head(&irq_gpio_key.r_wait);
     return 0;
 
 failed_device:
@@ -323,9 +374,8 @@ static void __exit led_exit(void)
 	
 	for (i = 0; i < KEY_NUM; ++i) {
 		if (irq_gpio_key.irq_key[i].gpio >= 0) {
-			pr_info("gpiokey_exit: before gpio_free(gpiokey.irq_key[i].gpio);\n");
+		
 			gpio_free(irq_gpio_key.irq_key[i].gpio);
-			pr_info("gpiokey_exit: after gpio_free(gpiokey.irq_key[i].gpio);\n");
 		}
 	}
 

@@ -3,7 +3,7 @@ CURRENT_PATH := $(shell pwd)
 CROSS_COMPILE := arm-linux-gnueabihf-
 ARCH := arm
 
-obj-m := taskqueue.o
+obj-m := block_io.o
 
 all: build
 
