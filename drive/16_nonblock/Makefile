@@ -3,7 +3,7 @@ CURRENT_PATH := $(shell pwd)
 CROSS_COMPILE := arm-linux-gnueabihf-
 ARCH := arm
 
-obj-m := block_io.o
+obj-m := nonblock_io.o
 
 all: build
 

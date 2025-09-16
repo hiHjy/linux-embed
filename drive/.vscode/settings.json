@@ -4,6 +4,7 @@
         "fs.h": "c",
         "timer.h": "c",
         "kernel.h": "c",
-        "module.h": "c"
+        "module.h": "c",
+        "interrupt.h": "c"
     }
 }

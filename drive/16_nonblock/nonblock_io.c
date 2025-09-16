@@ -1,4 +1,4 @@
-#include <linux/kernel.h>
+ #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/err.h>
@@ -8,14 +8,14 @@
 #include <linux/cdev.h>
 #include <linux/fs.h>
 #include <linux/device.h>
-#include <asm-generic/uaccess.h>
 #include <linux/gpio.h>
 #include <linux/of_gpio.h>
 #include <linux/timer.h>
 #include <linux/irq.h>
 #include <linux/interrupt.h>
 #include <linux/wait.h>
-
+#include <linux/poll.h>
+#include <linux/sched.h>  
 #define IRQ_GPIO_KEY_CNT 1
 #define IRQ_GPIO_KEY_NAME "irq_gpio_key"
 #define KEY_NUM 1
@@ -45,8 +45,10 @@ struct irq_gpio_key {
 	atomic_t isrelease;
 	struct tasklet_struct tasklet;
 	struct work_struct work;
-	
 	wait_queue_head_t r_wait;
+
+	 
+	
 };
 struct irq_gpio_key irq_gpio_key;
 
@@ -57,7 +59,7 @@ struct irq_gpio_key irq_gpio_key;
 static int irq_gpio_key_open(struct inode *inode, struct file *filp)
 {
 	filp->private_data = &irq_gpio_key;
-
+	
 
 
 	return 0;
@@ -68,12 +70,47 @@ static int irq_gpio_key_release(struct inode *inode, struct file *filp) {
 	
 	return 0;
 }
+
+unsigned int irq_gpio_key_poll (struct file * filp, struct poll_table_struct * wait) 
+{
+
+	int mask = 0;
+	struct irq_gpio_key *dev = filp->private_data;
+
+	poll_wait(filp, &dev->r_wait, wait);
+
+	//按键按下可读
+	if (atomic_read(&dev->isrelease)) {
+		mask = POLLIN |POLLRDNORM;
+		return mask;
+	}
+	return 0;
+	
+
+   
+	
+
+}
+
 ssize_t irq_gpio_key_read (struct file *filp, char __user *buf, size_t count, loff_t *offt)
 {
 	
 	struct irq_gpio_key *dev = filp->private_data;
-	
 	int ret = 0;
+	printk("filp->f_flags & O_NONBLOCK:%d\n", filp->f_flags & O_NONBLOCK);
+	if (filp->f_flags & O_NONBLOCK) {
+		/*非阻塞的方式*/
+		printk("非阻塞读\n");
+		if (atomic_read(&dev->isrelease) == 0) {
+
+			return -EAGAIN;
+		}
+	} else {
+		/*阻塞的方式 */
+		//wait_event_interruptible(dev->r_wait, atomic_read(&dev->isrelease));
+		printk("阻塞的读分支\n");
+	}
+	
 #if 0 
 	/*实现阻塞io的第一种方式：可中断的等待：wait_event_interruptible() wake_up() 这一对函数*/
 
@@ -82,6 +119,7 @@ ssize_t irq_gpio_key_read (struct file *filp, char __user *buf, size_t count, lo
 	wait_event_interruptible(dev->r_wait, atomic_read(&dev->isrelease));//等待按键被按下，isrelease为0
 #endif
 
+#if 0
 	/*实现阻塞io的第二种方式:等待队列*/
 	DECLARE_WAITQUEUE(wait, current); //声明一个等待队列项名字为wait，与当前进程绑定起来
 	
@@ -102,6 +140,7 @@ ssize_t irq_gpio_key_read (struct file *filp, char __user *buf, size_t count, lo
 		remove_wait_queue(&dev->r_wait, &wait);
 		
 	}
+#endif
 	unsigned char keyvalue = atomic_read(&dev->key_value);
 	unsigned char is_release = atomic_read(&dev->isrelease);
 	
@@ -115,19 +154,23 @@ ssize_t irq_gpio_key_read (struct file *filp, char __user *buf, size_t count, lo
 					
 	}
 	
-	return 0;
-	
+     	return 0;
+#if 0	
 data_error:
 	__set_current_state(TASK_RUNNING); /*设置当前进程为运行状态*/
 	remove_wait_queue(&dev->r_wait, &wait);
+
 	return ret;
+#endif
+
 }
 
 static const struct file_operations irq_gpio_key_fops = {
-		.owner = THIS_MODULE,
-		.read = irq_gpio_key_read,
-		.open = irq_gpio_key_open,
-		.release = irq_gpio_key_release,
+		.owner		= THIS_MODULE,
+		.read 		= irq_gpio_key_read,
+		.open 		= irq_gpio_key_open,
+		.release 	= irq_gpio_key_release,
+		.poll  		= irq_gpio_key_poll,
 };
 /*定时器处理函数*/
 void timer_func(unsigned long data)

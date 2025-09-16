@@ -6,13 +6,6 @@
 #include "stdlib.h"
 #include "string.h"
 
-#define CLOSE_CMD			_IO(0XEF, 1)
-#define OPEN_CMD			_IO(0XEF, 2)
-#define SETPERIOD_CMD		_IOW(0XEF, 3, int)
-
-
-#define LEDOFF 	0
-#define LEDON 	1
 
 
 int main(int argc, char *argv[])
@@ -30,8 +23,8 @@ int main(int argc, char *argv[])
 	
 	filename = argv[1];
 
-	/* 打开led驱动 */
-	fd = open(filename, O_RDWR);
+	
+	fd = open(filename, O_RDWR | O_NONBLOCK);
 	if(fd < 0){
 		printf("file %s open failed!\r\n", argv[1]);
 		return -1;
