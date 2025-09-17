@@ -5,6 +5,9 @@
         "timer.h": "c",
         "kernel.h": "c",
         "module.h": "c",
-        "interrupt.h": "c"
+        "interrupt.h": "c",
+        "slab.h": "c",
+        "string.h": "c",
+        "select.h": "c"
     }
 }
