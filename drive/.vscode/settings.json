@@ -8,6 +8,8 @@
         "interrupt.h": "c",
         "slab.h": "c",
         "string.h": "c",
-        "select.h": "c"
+        "select.h": "c",
+        "clk.h": "c",
+        "platform_device.h": "c"
     }
 }

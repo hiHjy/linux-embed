@@ -18,22 +18,15 @@ static const struct modversion_info ____versions[]
 __used
 __attribute__((section("__versions"))) = {
 	{ 0xfa985410, __VMLINUX_SYMBOL_STR(module_layout) },
-	{ 0x7485e15e, __VMLINUX_SYMBOL_STR(unregister_chrdev_region) },
-	{ 0xb37da9a1, __VMLINUX_SYMBOL_STR(cdev_del) },
-	{ 0x495be299, __VMLINUX_SYMBOL_STR(class_destroy) },
-	{ 0xe6e17706, __VMLINUX_SYMBOL_STR(device_destroy) },
-	{ 0x83f62a58, __VMLINUX_SYMBOL_STR(gpiod_get_raw_value) },
-	{ 0xfe990052, __VMLINUX_SYMBOL_STR(gpio_free) },
+	{ 0x51204841, __VMLINUX_SYMBOL_STR(platform_driver_unregister) },
+	{ 0xda113ac9, __VMLINUX_SYMBOL_STR(__platform_driver_register) },
+	{ 0x4ee6e196, __VMLINUX_SYMBOL_STR(misc_register) },
 	{ 0xc61ff1f2, __VMLINUX_SYMBOL_STR(gpiod_direction_output_raw) },
 	{ 0x47229b5c, __VMLINUX_SYMBOL_STR(gpio_request) },
 	{ 0xde6fb46c, __VMLINUX_SYMBOL_STR(of_get_named_gpio_flags) },
-	{ 0xfbed6f8c, __VMLINUX_SYMBOL_STR(of_find_node_opts_by_path) },
-	{ 0x17d73699, __VMLINUX_SYMBOL_STR(device_create) },
-	{ 0x3c8c7d13, __VMLINUX_SYMBOL_STR(__class_create) },
-	{ 0xfeb25d8b, __VMLINUX_SYMBOL_STR(cdev_add) },
-	{ 0xb6828306, __VMLINUX_SYMBOL_STR(cdev_init) },
+	{ 0xd9285795, __VMLINUX_SYMBOL_STR(misc_deregister) },
+	{ 0xfe990052, __VMLINUX_SYMBOL_STR(gpio_free) },
 	{ 0x27e1a049, __VMLINUX_SYMBOL_STR(printk) },
-	{ 0x29537c9e, __VMLINUX_SYMBOL_STR(alloc_chrdev_region) },
 	{ 0x389329b3, __VMLINUX_SYMBOL_STR(gpiod_set_raw_value) },
 	{ 0x3089e8ae, __VMLINUX_SYMBOL_STR(gpio_to_desc) },
 	{ 0xefd6cf06, __VMLINUX_SYMBOL_STR(__aeabi_unwind_cpp_pr0) },
@@ -45,4 +38,4 @@ __attribute__((section(".modinfo"))) =
 "depends=";
 
 
-MODULE_INFO(srcversion, "08018FC0F11DF36C10E1675");
+MODULE_INFO(srcversion, "CEE17E629CB23DC0B1F7B19");
